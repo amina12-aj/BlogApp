@@ -6,59 +6,29 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BlogProject.Controllers
 {
-    public class AccountController1 : Controller { 
-    private UserManager<AppUser> _userManager;
-    private SignInManager<AppUser> _signInManager;
-    private readonly IMapper _mapper;
-
-
-        public AccountController1(IMapper mapper,UserManager<AppUser> userMgr, SignInManager<AppUser> signinMgr)
+    public class AccountController1 : Controller
     {
-        _userManager = userMgr;
-        _signInManager = signinMgr;
-       _mapper = mapper;
-    }
+        private UserManager<AppUser> _userManager;
+        private SignInManager<AppUser> _signInManager;
+        private readonly IMapper _mapper;
 
-    [AllowAnonymous]
-    public IActionResult Login(string returnUrl)
-    {
-        Account login = new Account();
-        login.ReturnUrl = returnUrl;
-        return View(login);
-    }
 
-    [HttpPost]
-    [AllowAnonymous]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Login(Account login)
-    {
-        if (ModelState.IsValid)
+        public AccountController1(IMapper mapper, UserManager<AppUser> userMgr, SignInManager<AppUser> signinMgr)
         {
-            AppUser appUser = await _userManager.FindByEmailAsync(login.Email);
-            if (appUser != null)
-            {
-                await _signInManager.SignOutAsync();
-                Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(appUser, login.Password, false, false);
-                if (result.Succeeded)
-                    return Redirect(login.ReturnUrl ?? "/");
-            }
-            ModelState.AddModelError(nameof(login.Email), "Login Failed: Invalid Email or password");
+            _userManager = userMgr;
+            _signInManager = signinMgr;
+            _mapper = mapper;
         }
-        return View(login);
-    }
-    public async Task<IActionResult> Logout()
-    {
-        await _signInManager.SignOutAsync();
-        return RedirectToAction("Index", "Home");
-    }
+
 
 
         //Registeration
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AllowAnonymous]
         public async Task<IActionResult> Register(Account account)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 return View(account);
             }
@@ -80,5 +50,40 @@ namespace BlogProject.Controllers
 
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }
+
+
+        [AllowAnonymous]
+        public IActionResult Login(string returnUrl)
+        {
+            Account login = new Account();
+            login.ReturnUrl = returnUrl;
+            return View(login);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(Account login)
+        {
+            if (ModelState.IsValid)
+            {
+                AppUser appUser = await _userManager.FindByEmailAsync(login.Email);
+                if (appUser != null)
+                {
+                    await _signInManager.SignOutAsync();
+                    Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(appUser, login.Password, false, false);
+                    if (result.Succeeded)
+                        return Redirect(login.ReturnUrl ?? "/");
+                }
+                ModelState.AddModelError(nameof(login.Email), "Login Failed: Invalid Email or password");
+            }
+            return View(login);
+        }
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Index", "Home");
+        }
     }
+
+       
 }

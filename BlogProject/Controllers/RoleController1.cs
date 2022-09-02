@@ -12,7 +12,7 @@ namespace BlogProject.Controllers
         {
             _roleManager = roleMgr;
         }
-
+        [AllowAnonymous]
         public ViewResult Index() => View(_roleManager.Roles);
 
         private void Errors(IdentityResult result)
